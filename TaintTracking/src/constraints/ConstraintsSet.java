@@ -14,7 +14,7 @@ import java.util.Set;
 import security.ILevel;
 import security.ILevelMediator;
 
-public class ConstraintsSet implements Collection<LEQConstraint> {
+public class ConstraintsSet  {
 
 	private final Set<LEQConstraint> constraints = new HashSet<LEQConstraint>();
 	private final ILevelMediator mediator;
@@ -42,21 +42,19 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 		this.writeEffects.addAll(writeEffects);
 	}
 
-	@Override
 	public boolean add(LEQConstraint constraint) {
 		IComponent left = constraint.getLhs();
 		IComponent right = constraint.getRhs();
 		if (!left.equals(right)) {
 			if (right.equals(mediator.getGreatestLowerBoundLevel()) || left.equals(mediator.getLeastUpperBoundLevel())) {
 				LEQConstraint bound = new LEQConstraint(right, left);
-				if (!contains(bound)) add(bound);
+				if (!this.constraints.contains(bound)) add(bound);
 			}
 			return constraints.add(constraint);
 		}
 		return false;
 	}
 
-	@Override
 	public boolean addAll(Collection<? extends LEQConstraint> constraints) {
 		boolean res = false;
 		for (LEQConstraint constraint : constraints) {
@@ -129,21 +127,10 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 		return reduction;
 	}
 
-	@Override
 	public void clear() {
 		constraints.clear();
 		programCounter.clear();
 		writeEffects.clear();
-	}
-
-	@Override
-	public boolean contains(Object obj) {
-		return constraints.contains(obj);
-	}
-
-	@Override
-	public boolean containsAll(Collection<?> cs) {
-		return constraints.containsAll(cs);
 	}
 
 	public Set<LEQConstraint> getAllProgramCounterConstraints() {
@@ -198,69 +185,45 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 		return new HashSet<LEQConstraint>(writeEffects);
 	}
 
-	@Override
-	public boolean isEmpty() {
-		return constraints.isEmpty();
-	}
-
-	@Override
-	public Iterator<LEQConstraint> iterator() {
-		return constraints.iterator();
-	}
-
-	@Override
-	public boolean remove(Object obj) {
-		return constraints.remove(obj);
-	}
-
-	@Override
-	public boolean removeAll(Collection<?> cs) {
-		boolean res = false;
-		for (Object obj : cs) {
-			res |= remove(obj);
-		}
-		return res;
-	}
-
 	public void removeConstraintsContaining(ComponentLocal local) {
 		calculateTransitiveClosure();
 		for (LEQConstraint constraint : getConstraintsSet()) {
-			if (constraint.containsComponent(local)) remove(constraint);
+			if (constraint.containsComponent(local)) this.constraints.remove(constraint);
 		}
 	}
 	
 	public void removeConstraintsContainingInclBase(IComponent component) {
 		calculateTransitiveClosure();
 		for (LEQConstraint constraint : getConstraintsSet()) {
-			if (constraint.containsComponentInclBase(component)) remove(constraint);
+			if (constraint.containsComponentInclBase(component)) this.constraints.remove(constraint);
 		}
 	}
 	
 	public void removeConstraintsContaining(ComponentPlaceholder placeholder) {
 		calculateTransitiveClosure();
 		for (LEQConstraint constraint : getConstraintsSet()) {
-			if (constraint.containsComponent(placeholder)) remove(constraint);
+			if (constraint.containsComponent(placeholder)) this.constraints.remove(constraint);
 		}
 	}
 
 	public void removeConstraintsContainingGeneratedLocal() {
 		calculateTransitiveClosure();
 		for (LEQConstraint constraint : getConstraintsSet()) {
-			if (constraint.containsGeneratedLocal()) remove(constraint);
+			if (constraint.containsGeneratedLocal()) this.constraints.remove(constraint);
 		}
 	}
 
 	public void removeConstraintsContainingLocal() {
 		calculateTransitiveClosure();
 		for (LEQConstraint constraint : getConstraintsSet()) {
-			if (constraint.containsLocal()) remove(constraint);
+			if (constraint.containsLocal()) this.constraints.remove(constraint);
 		}
 	}
 
 	public void removeConstraintsContainingProgramCounter() {
 		calculateTransitiveClosure();
 		for (LEQConstraint constraint : getConstraintsSet()) {
-			if (constraint.containsProgramCounterReference()) remove(constraint);
+			if (constraint.containsProgramCounterReference()) this.constraints.remove(constraint);
 		}
 	}
 
@@ -282,7 +245,7 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 			for (LEQConstraint constraint : getConstraintsSet()) {
 				if (constraint.containsReturnReferenceInclBaseFor(signature) || constraint.containsParameterReferenceInclBaseFor(signature)
 						|| constraint.containsProgramCounterReferenceFor(signature)) {
-					remove(constraint);
+					this.constraints.remove(constraint);
 				}
 			}
 		}
@@ -294,7 +257,7 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 			for (LEQConstraint constraint : getConstraintsSet()) {
 				if (constraint.containsReturnReferenceFor(signature) || constraint.containsParameterReferenceFor(signature)
 						|| constraint.containsProgramCounterReferenceFor(signature)) {
-					remove(constraint);
+					this.constraints.remove(constraint);
 				}
 			}
 		}
@@ -304,7 +267,6 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 		return null != programCounter.remove(trigger);
 	}
 
-	@Override
 	public boolean retainAll(Collection<?> cs) {
 		List<LEQConstraint> removing = new ArrayList<LEQConstraint>();
 		for (LEQConstraint c : constraints) {
@@ -312,20 +274,17 @@ public class ConstraintsSet implements Collection<LEQConstraint> {
 				removing.add(c);
 			}
 		}
-		return removeAll(removing);
+		return this.constraints.removeAll(removing);
 	}
 
-	@Override
 	public int size() {
 		return constraints.size();
 	}
 
-	@Override
 	public Object[] toArray() {
 		return constraints.toArray();
 	}
 
-	@Override
 	public <T> T[] toArray(T[] a) {
 		return constraints.toArray(a);
 	}
